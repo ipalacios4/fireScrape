@@ -47,7 +47,7 @@ Also included in the files is calFire2024.csv and mapdataall.csv, mapdataallClea
     - The only concern is how seperated the code is gonna be for each year knowing that text data isn't uniform
 
 - Text data is not uniformed
-    - Some zone status start/end dates are built into paragraph while others are in an <ul> in the <div>. We have to find the best way to try to retrieve this zone data
+    - Some zone status start/end dates are built into paragraph while others are in an ul in the div. We have to find the best way to try to retrieve this zone data
 
 - Zone Update status edge cases
     - There could be a possibility where a zone will start as a warning (start date) move to an order (end date for warning, start date for order) then move back down to a warning (start date warning, end date order). The question is how should we format this with in the csv file (should we override previous end date or create another row for this zone indicating this change.)
