@@ -33,28 +33,26 @@ def updateExtraction(masterURL, url, year, file):
     evacOrders = []
     updates = []
     warningsList = []
+    incident_name = None
 
     # This shows up twice can be made into a small method to just call to be able to run this.
     r = requests.get(url + 'updates', headers=headers)
     if r.status_code != 200:
         print(f"ERROR\nExit code {r.status_code} for URL: {url}/updates")
-        return {
-            'start_date': '',
-            'incident_time': '',
-            'warning_zones': [],
-            'order_zones': []
-        }
+        return
     else:
         soup = BeautifulSoup(r.content, 'html5lib')
         table = soup.find(class_="detail-page")
         if table and "No updates were found for this incident" in table.text:
             print(f"Skipping {url}/updates - No updates found.")
-            return {
-                'start_date': '',
-                'incident_time': '',
-                'warning_zones': [],
-                'order_zones': []
-            }
+            return  # Skip processing for this incident
+
+        # Get incident name from the h1 tag on the updates page
+        h1_tag = soup.find('h1')
+        if h1_tag:
+            # Extract incident name by removing "Status Update Reports" from the h1 text
+            full_text = h1_tag.text.strip()
+            incident_name = full_text.replace(" Status Update Reports", "")
 
         # Extract all update links and their corresponding dates
         table = table.find_all('li')
@@ -112,7 +110,8 @@ def updateExtraction(masterURL, url, year, file):
 
     return {
         'start_date': updates[0][0] if updates else '',  # First update date
-        'incident_time': updates[-1][0] if updates else '',   # Last update date
+        'incident_time': updates[-1][0] if updates else '',   # Last update date,
+        'incident_name': incident_name,
         'warning_zones': warningsList,
         'order_zones': zones  # Your existing zones list
     }
@@ -132,31 +131,31 @@ if __name__ == '__main__':
         output_df = pd.DataFrame(columns=["Start Date", "Incident Time", 'Incident Name', "Evacuation Warning Zones", "Evacuation Order Zones"])
             
             
-        df = pd.read_csv(csv_file)
+        df =pd.read_csv(csv_file)
         incident = df['incident_url']
         incidentName = df['incident_name']
         # loop through each incident and process
-        for i in range(499, 502):
+        for i in range(499, 503):
             print(f"Processing: {incidentName[i]}")
 
             # temp file to store the zones data
-            with open(f"temp_zones_{year}.txt", "w") as file:  # Changed to "w" mode to create new file each time
+            with open(f"temp_zones_{year}.txt", "a") as file:
                 zones_data = updateExtraction(URL, incident[i], year, file)
             
-            if zones_data:  # Only add row if we got valid data back
-                new_row = {
-                    'Start Date': zones_data['start_date'],
-                    'Incident Time': zones_data['incident_time'],
-                    'Incident Name': incidentName[i],  # Added incident name to output
-                    'Evacuation Warning Zones': ','.join(zones_data['warning_zones']),
-                    'Evacuation Order Zones': ','.join(zones_data['order_zones'])
-                }
-                
-                output_df = pd.concat([output_df, pd.DataFrame([new_row])], ignore_index=True)
-                
-                # Save after each incident is processed
-                output_df.to_csv(output_file, index=False)
-                print(f"Results saved to: {output_file}")
+            new_row = {
+                'Start Date': zones_data['start_date'],
+                'Incident Time': zones_data['incident_time'],
+                'Incident Name': zones_data['incident_name'],
+                'Evacuation Warning Zones': ','.join(zones_data['warning_zones']),
+                'Evacuation Order Zones': ','.join(zones_data['order_zones'])
+            }
+            
+            output_df = pd.concat([output_df, pd.DataFrame([new_row])], ignore_index=True)
+            
+            
+            # save to csv
+            output_df.to_csv(output_file, mode='a', header=not Path(output_file).exists(), index=False)
+            print(f"Results saved to: {output_file}")
 
     except FileNotFoundError:
         print(f"Error: The file '{csv_file}' was not found.")
