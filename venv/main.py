@@ -82,22 +82,41 @@ def updateExtraction(masterURL, url, year, file):
             soup = BeautifulSoup(r.content, 'html5lib')
 
             # Extract evacuation zones
-            pattern = r'\b[A-Za-z]{3}-\d{3}\b'
+            # pattern = r'\b[A-Za-z]{3}-\d{3}\b'
+
+            # evacBox = soup.find_all(class_="border border-danger-dark mt-4")
+            # for parent in evacBox:
+            #     if parent.find('h2').string == 'Evacuation Zones':
+            #         evacOrders = list(parent.find('div', {"class": 'p-3'}).strings)
+
+            #         c = 0
+            #         while c < len(evacOrders):
+            #             if '\n' in evacOrders[c]:
+            #                 evacOrders.pop(c)
+            #                 continue
+            #             else:
+            #                 extractedZones = re.findall(pattern, evacOrders[c])
+            #                 if len(extractedZones) > 0:
+            #                     zones.extend(extractedZones)
+            #             c += 1
             evacBox = soup.find_all(class_="border border-danger-dark mt-4")
             for parent in evacBox:
-                if parent.find('h2').string == 'Evacuation Zones':
-                    evacOrders = list(parent.find('div', {"class": 'p-3'}).strings)
+                # Locate h3: "Evacuation Information"
+                h3_element = parent.find('h3', string=re.compile("Evacuation Information", re.IGNORECASE))
+                if h3_element:
+                    # Find h4: "Evacuation Orders"
+                    h4_element = h3_element.find_next_sibling('h4', string=re.compile("Evacuation Orders", re.IGNORECASE))
+                    if h4_element:
+                        evacOrders = []
+                        next_tag = h4_element.find_next_sibling()
 
-                    c = 0
-                    while c < len(evacOrders):
-                        if '\n' in evacOrders[c]:
-                            evacOrders.pop(c)
-                            continue
-                        else:
-                            extractedZones = re.findall(pattern, evacOrders[c])
-                            if len(extractedZones) > 0:
-                                zones.extend(extractedZones)
-                        c += 1
+                        # Extract all text under "Evacuation Orders" until the next heading (h3/h4)
+                        while next_tag and next_tag.name not in ['h3', 'h4']:
+                            if next_tag.name in ['p', 'ul', 'li']:  # Only extract meaningful content
+                                evacOrders.append(next_tag.get_text(strip=True))
+                            next_tag = next_tag.find_next_sibling()
+
+                        zones.extend(evacOrders)
 
     # Write results to the file
     file.write(f"Processed Dates: {', '.join(date for date, _ in updates)}\n")
@@ -135,7 +154,7 @@ if __name__ == '__main__':
         incident = df['incident_url']
         incidentName = df['incident_name']
         # loop through each incident and process
-        for i in range(499, 503):
+        for i in range(500, 502):
             print(f"Processing: {incidentName[i]}")
 
             # temp file to store the zones data
