@@ -154,7 +154,7 @@ if __name__ == '__main__':
         incident = df['incident_url']
         incidentName = df['incident_name']
         # loop through each incident and process
-        for i in range(500, 502):
+        for i in range(500, 50):
             print(f"Processing: {incidentName[i]}")
 
             # temp file to store the zones data
