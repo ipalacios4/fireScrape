@@ -1,3 +1,9 @@
+"""
+This script scrapes evacuation order and warning zones from California wildfires listed on the CAL FIRE website.
+It processes fire incidents from a given CSV file, extracts updates from each incident page, and compiles a cleaned dataset 
+containing all evacuation zones. The final output is saved as a CSV file for further analysis.
+"""
+
 import aiohttp
 import asyncio
 import pandas as pd
@@ -149,7 +155,7 @@ async def main():
     except pd.errors.EmptyDataError:
         print(f"Error: The file '{csv_file}' is empty.")
     except Exception as e:
-        print(f"⚠️ An unexpected error occurred: {str(e)}")
+        print(f"An unexpected error occurred: {str(e)}")
 
 if __name__ == '__main__':
     asyncio.run(main())

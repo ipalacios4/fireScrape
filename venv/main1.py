@@ -1,3 +1,13 @@
+"""
+This script scrapes and collects all text related to evacuation orders and warnings from California wildfires
+listed on the CAL FIRE website. Unlike main.py that only extracts evacuation zone codes, this version 
+keeps all text from the evacuation order and warning sections. 
+
+It processes fire incidents from a given CSV file, fetches updates for each incident, and compiles a structured dataset 
+containing full evacuation details. The script also sorts and saves the extracted data into temporary text files 
+as well as a final CSV file for further analysis. 
+"""
+
 import requests
 import json
 import pandas as pd
