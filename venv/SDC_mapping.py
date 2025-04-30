@@ -8,7 +8,8 @@ sdc_master = pd.read_csv("SDC_evac_zones.csv")
 sdc_master["stripped_id"] = sdc_master["zone_id"].astype(str).str.extract(r"(SDC-\d+)")
 valid_sdc_suffixes = set(sdc_master["stripped_id"].dropna().unique())
 
-# === LOAD FULL GEOJSON ===
+# === LOAD FULL GEOJSON === 
+# something is wrong here
 with open("Evacuation_Zones_WGS84.geojson", "r") as f:
     all_zones = json.load(f)
 

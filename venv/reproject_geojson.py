@@ -7,7 +7,7 @@ import json
 input_path = "Evacuation_Zones.geojson"
 output_path = "Evacuation_Zones_WGS84.geojson"
 
-# ⚠️ Replace with correct source CRS if known (3857 is a common guess for web maps)
+# Replace with correct source CRS if known (3857 is a common guess for web maps)
 src_crs = "EPSG:2229"
 dst_crs = "EPSG:4326"  # WGS84 (lat/lon)
 
