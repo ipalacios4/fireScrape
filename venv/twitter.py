@@ -8,7 +8,7 @@ async def main():
     # ADD ACCOUNTS (for CLI usage see next readme section)
 
     # Option 1. Adding account with cookies (more stable)
-    cookies = "auth_token=0ef9b9e8cc0f44e4907cb50dcae9c014e3ef7c6e; ct0=fb08a3bcc0bcc0aea795b5ecf70ffc18d23a6f33507a61c90256021a4e500232f9282b962671918ea1a4827674865daac2fc96c1413394119a8340cfff27f0f5020d8b2215f62be70dc9d6c4ddd9d30e"
+    cookies = "auth_token=ea932f8e3672a713cd61bbcde274c8474afac863; ct0=95e1f2aa985ba2504d922ed3dcb6e35e637378bc1370a0cd90c5c1b976836cd5481a5c8ca9bf2c845eb34e495ae29d8c3569ef6db3b4befca4215eb47057748e737e3deba5fda9d8cf5c85f0afa67e57; twid=u%3D1922701009643835392; guest_id=v1%3A174725757322191254;"
     await api.pool.add_account("hannahhween", "WuLab2025", "dummy@email.com", "dummy_password", cookies=cookies)
 
     # API USAGE
