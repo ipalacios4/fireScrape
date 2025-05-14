@@ -8,14 +8,8 @@ async def main():
     # ADD ACCOUNTS (for CLI usage see next readme section)
 
     # Option 1. Adding account with cookies (more stable)
-    cookies = "abc=12; ct0=xyz"  # or '{"abc": "12", "ct0": "xyz"}'
-    await api.pool.add_account("user3", "pass3", "u3@mail.com", "mail_pass3", cookies=cookies)
-
-    # Option2. Adding account with login / password (less stable)
-    # email login / password required to receive the verification code via IMAP protocol
-    # (not all email providers are supported, e.g. ProtonMail)
-    await api.pool.add_account("user1", "pass1", "u1@example.com", "mail_pass1")
-    await api.pool.login_all() # try to login to receive account cookies
+    cookies = "auth_token=0ef9b9e8cc0f44e4907cb50dcae9c014e3ef7c6e; ct0=fb08a3bcc0bcc0aea795b5ecf70ffc18d23a6f33507a61c90256021a4e500232f9282b962671918ea1a4827674865daac2fc96c1413394119a8340cfff27f0f5020d8b2215f62be70dc9d6c4ddd9d30e"
+    await api.pool.add_account("hannahhween", "WuLab2025", "dummy@email.com", "dummy_password", cookies=cookies)
 
     # API USAGE
 
@@ -33,11 +27,12 @@ async def main():
     await gather(api.tweet_replies(tweet_id, limit=20))  # list[Tweet]
 
     # get user by login
-    user_login = "xdevelopers"
+    user_login = "hannahhween"
     await api.user_by_login(user_login)  # User
 
     # user info
-    user_id = 2244994945
+    user = await api.user_by_login("hannahhween")  # Replace with any username
+    user_id = user.id
     await api.user_by_id(user_id)  # User
     await gather(api.following(user_id, limit=20))  # list[User]
     await gather(api.followers(user_id, limit=20))  # list[User]
@@ -47,13 +42,7 @@ async def main():
     await gather(api.user_tweets_and_replies(user_id, limit=20))  # list[Tweet]
     await gather(api.user_media(user_id, limit=20))  # list[Tweet]
 
-    # list info
-    await gather(api.list_timeline(list_id=123456789))
-
-    # trends
-    await gather(api.trends("news"))  # list[Trend]
-    await gather(api.trends("sport"))  # list[Trend]
-    await gather(api.trends("VGltZWxpbmU6DAC2CwABAAAACHRyZW5kaW5nAAA"))  # list[Trend]
+    
 
     # NOTE 1: gather is a helper function to receive all data as list, FOR can be used as well:
     async for tweet in api.search("elon musk"):
@@ -89,6 +78,9 @@ async def main():
     # for tweet in tweets:
     #     if "evacuation" in tweet.rawContent.lower():
     #         print(tweet.rawContent)
+
+    # Get user ID from username
+
 
 if __name__ == "__main__":
     asyncio.run(main())
