@@ -44,14 +44,6 @@ async def main():
 
     
 
-    # NOTE 1: gather is a helper function to receive all data as list, FOR can be used as well:
-    async for tweet in api.search("elon musk"):
-        print(tweet.id, tweet.user.username, tweet.rawContent)  # tweet is `Tweet` object
-
-    # NOTE 2: all methods have `raw` version (returns `httpx.Response` object):
-    async for rep in api.search_raw("elon musk"):
-        print(rep.status_code, rep.json())  # rep is `httpx.Response` object
-
     # change log level, default info
     set_log_level("DEBUG")
 
@@ -68,10 +60,11 @@ async def main():
     query = "from:CAL_FIRE evacuation"
     tweets = await gather(api.search(query, limit=20))
     for tweet in tweets:
-        print(f"Date: {tweet.date}")
-        print(f"Content: {tweet.rawContent}")
-        print(f"Link: https://twitter.com/CAL_FIRE/status/{tweet.id}")
-        print("-" * 40)
+        with open("tweets.txt", "a") as f:
+            f.write(f"Date: {tweet.date}\n")
+            f.write(f"Content: {tweet.rawContent}\n")
+            f.write(f"Link: https://twitter.com/CAL_FIRE/status/{tweet.id}\n")
+            f.write("-" * 40 + "\n")
 
     # Optionally, get all recent tweets from CalFire and filter for evacuation info
     # tweets = await gather(api.user_tweets(calfire_id, limit=50))
