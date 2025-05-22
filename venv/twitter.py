@@ -1,79 +1,52 @@
 import asyncio
+from datetime import datetime, timedelta
 from twscrape import API, gather
 from twscrape.logger import set_log_level
 
 async def main():
-    api = API()  # or API("path-to.db") – default is `accounts.db`
+    set_log_level("DEBUG")
+    api = API()
 
-    # ADD ACCOUNTS (for CLI usage see next readme section)
-
-    # Option 1. Adding account with cookies (more stable)
+    # Add account
     cookies = "auth_token=ea932f8e3672a713cd61bbcde274c8474afac863; ct0=95e1f2aa985ba2504d922ed3dcb6e35e637378bc1370a0cd90c5c1b976836cd5481a5c8ca9bf2c845eb34e495ae29d8c3569ef6db3b4befca4215eb47057748e737e3deba5fda9d8cf5c85f0afa67e57; twid=u%3D1922701009643835392; guest_id=v1%3A174725757322191254;"
     await api.pool.add_account("hannahhween", "WuLab2025", "dummy@email.com", "dummy_password", cookies=cookies)
 
-    # API USAGE
+    keywords = ["evacuation", "order", "warning", "fire", "containment", "red flag"]
+    limit = 100
+    total = 0
 
-    # search (latest tab)
-    await gather(api.search("elon musk", limit=20))  # list[Tweet]
-    # change search tab (product), can be: Top, Latest (default), Media
-    await gather(api.search("elon musk", limit=20, kv={"product": "Top"}))
+    with open("calfire_2024_tweets.txt", "a", encoding="utf-8") as f:
+        # Loop over each month in 2024
+        for month in range(1, 13):
+            start = datetime(2024, month, 1)
+            end = datetime(2024, month + 1, 1) if month < 12 else datetime(2025, 1, 1)
 
-    # tweet info
-    tweet_id = 20
-    await api.tweet_details(tweet_id)  # Tweet
-    await gather(api.retweeters(tweet_id, limit=20))  # list[User]
+            query = f"from:CAL_FIRE since:{start.date()} until:{end.date()}"
+            print(f"Searching: {query}")
 
-    # Note: this method have small pagination from X side, like 5 tweets per query
-    await gather(api.tweet_replies(tweet_id, limit=20))  # list[Tweet]
+            try:
+                tweets = await gather(api.search(query, limit=limit))
+                if not tweets:
+                    print(f"No tweets found for {start.strftime('%B %Y')}")
+                    continue
 
-    # get user by login
-    user_login = "hannahhween"
-    await api.user_by_login(user_login)  # User
+                for tweet in tweets:
+                    content = tweet.rawContent.lower()
+                    if any(k in content for k in keywords):
+                        f.write(f"Date: {tweet.date}\n")
+                        f.write(f"Content: {tweet.rawContent}\n")
+                        f.write(f"Link: https://twitter.com/CAL_FIRE/status/{tweet.id}\n")
+                        f.write("-" * 40 + "\n")
+                        total += 1
 
-    # user info
-    user = await api.user_by_login("hannahhween")  # Replace with any username
-    user_id = user.id
-    await api.user_by_id(user_id)  # User
-    await gather(api.following(user_id, limit=20))  # list[User]
-    await gather(api.followers(user_id, limit=20))  # list[User]
-    await gather(api.verified_followers(user_id, limit=20))  # list[User]
-    await gather(api.subscriptions(user_id, limit=20))  # list[User]
-    await gather(api.user_tweets(user_id, limit=20))  # list[Tweet]
-    await gather(api.user_tweets_and_replies(user_id, limit=20))  # list[Tweet]
-    await gather(api.user_media(user_id, limit=20))  # list[Tweet]
+                print(f"Saved {len(tweets)} tweets for {start.strftime('%B %Y')}")
+                await asyncio.sleep(5)
 
-    
+            except Exception as e:
+                print(f"Error during search for {start.date()}: {e}")
+                break
 
-    # change log level, default info
-    set_log_level("DEBUG")
-
-    # Tweet & User model can be converted to regular dict or json, e.g.:
-    doc = await api.user_by_id(user_id)  # User
-    doc.dict()  # -> python dict
-    doc.json()  # -> json string
-
-    # Get CalFire user info
-    calfire_user = await api.user_by_login("CAL_FIRE")
-    calfire_id = calfire_user.id
-
-    # Search for recent tweets from CalFire mentioning "evacuation"
-    query = "from:CAL_FIRE evacuation"
-    tweets = await gather(api.search(query, limit=20))
-    for tweet in tweets:
-        with open("tweets.txt", "a") as f:
-            f.write(f"Date: {tweet.date}\n")
-            f.write(f"Content: {tweet.rawContent}\n")
-            f.write(f"Link: https://twitter.com/CAL_FIRE/status/{tweet.id}\n")
-            f.write("-" * 40 + "\n")
-
-    # Optionally, get all recent tweets from CalFire and filter for evacuation info
-    # tweets = await gather(api.user_tweets(calfire_id, limit=50))
-    # for tweet in tweets:
-    #     if "evacuation" in tweet.rawContent.lower():
-    #         print(tweet.rawContent)
-
-    # Get user ID from username
-
+    print(f"Done. Total tweets written: {total}")
 
 if __name__ == "__main__":
     asyncio.run(main())
