@@ -31,23 +31,59 @@ async def save_tweets_to_file(year, tweets, output_dir="tweets"):
     if not tweets:
         return
     
-    # Create output directory if it doesn't exist
+    # Create output directories if they don't exist
     import os
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(os.path.join(output_dir, "images"), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, "text"), exist_ok=True)
     
-    filename = os.path.join(output_dir, f"calfire_tweets_{year}.txt")
-    try:
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(f"Tweets from CAL_FIRE for {year}\n")
-            f.write("=" * 50 + "\n\n")
-            for tweet in tweets:
-                f.write(f"Date: {tweet.date}\n")
-                f.write(f"Content: {tweet.rawContent}\n")
-                f.write(f"Link: https://twitter.com/CAL_FIRE/status/{tweet.id}\n")
-                f.write("-" * 40 + "\n")
-        print(f"Successfully saved {len(tweets)} tweets to {filename}")
-    except Exception as e:
-        print(f"Error saving tweets for {year}: {e}")
+    # Separate tweets into image and text categories
+    image_tweets = []
+    text_tweets = []
+    
+    for tweet in tweets:
+        # Check if tweet has images
+        if hasattr(tweet, 'media') and tweet.media and any(m.type == 'photo' for m in tweet.media):
+            image_tweets.append(tweet)
+        else:
+            text_tweets.append(tweet)
+    
+    # Save image tweets
+    if image_tweets:
+        filename = os.path.join(output_dir, "images", f"calfire_tweets_{year}_images.txt")
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(f"Image Tweets from CAL_FIRE for {year}\n")
+                f.write("=" * 50 + "\n\n")
+                for tweet in image_tweets:
+                    f.write(f"Date: {tweet.date}\n")
+                    f.write(f"Content: {tweet.rawContent}\n")
+                    f.write(f"Link: https://twitter.com/CAL_FIRE/status/{tweet.id}\n")
+                    # Add image URLs if available
+                    if hasattr(tweet, 'media'):
+                        f.write("Images:\n")
+                        for media in tweet.media:
+                            if media.type == 'photo':
+                                f.write(f"- {media.url}\n")
+                    f.write("-" * 40 + "\n")
+            print(f"Successfully saved {len(image_tweets)} image tweets to {filename}")
+        except Exception as e:
+            print(f"Error saving image tweets for {year}: {e}")
+    
+    # Save text tweets
+    if text_tweets:
+        filename = os.path.join(output_dir, "text", f"calfire_tweets_{year}_text.txt")
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(f"Text Tweets from CAL_FIRE for {year}\n")
+                f.write("=" * 50 + "\n\n")
+                for tweet in text_tweets:
+                    f.write(f"Date: {tweet.date}\n")
+                    f.write(f"Content: {tweet.rawContent}\n")
+                    f.write(f"Link: https://twitter.com/CAL_FIRE/status/{tweet.id}\n")
+                    f.write("-" * 40 + "\n")
+            print(f"Successfully saved {len(text_tweets)} text tweets to {filename}")
+        except Exception as e:
+            print(f"Error saving text tweets for {year}: {e}")
 
 async def main():
     try:
