@@ -21,33 +21,103 @@ To extract zone info from text. Zone name is in ABC-###-a where 'a' is not appli
     - incident acers burned
     - incident url
 
-## Current Version
+## Project Structure and Files
 
-The way this project is structured is that it is built within a Python virtual environment. This is to make sure you have all the necessary packages needed without having to download them all locally. To activate the virtual environment, head over to the directory fireScrape and run the following
+### Core Files
+- `main.py` - Main script for processing CalFIRE data and extracting zone information
+- `main1.py` - Alternative version of the main script with different processing logic
+- `twitter.py` - Script to scrape CalFIRE tweets, categorizing them by year and type (image/text)
+- `visualize_zones.py` - Creates visualizations of evacuation zones
+- `SDC_mapping.py` - Handles San Diego County specific zone mappings
+- `reproject_geojson.py` - Utility script to reproject GeoJSON files to different coordinate systems
 
-'''bash 
-source .venv/bin/activate
-'''
-In case that the virtual environment these are the following packages being use in the script
+### Data Files
+- `mapdataall.csv` - Complete dataset of all incidents
+- `mapdataallClean.xlsx` - Cleaned version of mapdataall.csv with unwanted columns removed
+- `calFire2024.csv` - 2024-specific incident data for testing
+- `zone_to_fire_mapping_2020_2025.csv` - Mapping between zones and fires for 2020-2025
+- `SDC_evac_zones.csv` - San Diego County specific evacuation zones
+- `Evacuation_Zones.geojson` - GeoJSON file containing all evacuation zones
+- `Evacuation_Zones_WGS84.geojson` - WGS84 projected version of evacuation zones
+- `2025_fires.geojson` - 2025-specific fire data in GeoJSON format
+- `2025-ArcGIS.csv` - 2025 fire data in ArcGIS format
+
+### Output Files
+- `2025_map.html` - Interactive map visualization for 2025 data
+- `sdc_zones_map.html` - Interactive map of San Diego County zones
+
+## Setup and Installation
+
+1. Create and activate the virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Unix/macOS
+# or
+.\venv\Scripts\activate  # On Windows
+```
+
+2. Install required packages:
+```bash
+pip install requests pandas beautifulsoup4 twscrape
+```
+
+## How to Run
+
+### Twitter Scraper
+To scrape CalFIRE tweets:
+```bash
+python twitter.py
+```
+This will:
+- Create a `tweets` directory with subdirectories for images and text
+- Scrape tweets from 2008 to present
+- Categorize tweets as image or text
+- Save tweets in separate files by year and type
+
+### Main Data Processing
+To process CalFIRE data:
+```bash
+python main.py
+```
+This will process the main dataset and extract zone information.
+
+### Visualization
+To create zone visualizations:
+```bash
+python visualize_zones.py
+```
+This will generate interactive maps of evacuation zones.
+
+### San Diego County Mapping
+To process SDC-specific data:
+```bash
+python SDC_mapping.py
+```
+This will handle San Diego County specific zone mappings.
+
+## Current Issues and TODOs
+
+1. Data Separation
+- Need to break mapdataall.csv into separate years
+- Concern about code separation for each year due to non-uniform text data
+
+2. Text Data Uniformity
+- Zone status dates are inconsistently formatted
+- Some are in paragraphs, others in lists
+- Need to develop robust parsing strategy
+
+3. Zone Update Status Edge Cases
+- Handle cases where zones change status multiple times
+- Need to decide between:
+  - Overriding previous end dates
+  - Creating new rows for status changes
+
+## Dependencies
 - requests
 - pandas
 - time
 - re
 - BeautifulSoup
 - Path
-
-Also included in the files is calFire2024.csv and mapdataall.csv, mapdataallClean.xlsx
-- calFire2024.csv is only 2024 data of incidents for testing and only contains the incidents for 2024. There are less columns in calFire2024.csv is derived from mapdataallClean.xlsx
-- mapdataallClean.xlsx is a removes unwanted columns from mapadataall.csv
-
-
-
-# Some issues that need to be done
-- Break the mapdataall.csv into seperate years so that students can work on each 
-    - The only concern is how seperated the code is gonna be for each year knowing that text data isn't uniform
-
-- Text data is not uniformed
-    - Some zone status start/end dates are built into paragraph while others are in an ul in the div. We have to find the best way to try to retrieve this zone data
-
-- Zone Update status edge cases
-    - There could be a possibility where a zone will start as a warning (start date) move to an order (end date for warning, start date for order) then move back down to a warning (start date warning, end date order). The question is how should we format this with in the csv file (should we override previous end date or create another row for this zone indicating this change.)
+- twscrape (for Twitter scraping)
+- asyncio (for async operations)
